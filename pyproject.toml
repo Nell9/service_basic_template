@@ -1,0 +1,52 @@
+[project]
+name = "start_project"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "codek",email = "ego0777@gmail.com"}
+]
+
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    "environs (>=14.2.0,<15.0.0)",
+]
+
+[tool.poetry]
+packages = [{ include = "app", from = "src" }]
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.11.13"
+black = "^24.4.2"
+pre-commit = "^3.3.3"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = ["venv", "alembic", "docker", ".git", "__pycache__"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+ignore = ["E203", "E266", "E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+extend-exclude = '''
+(venv|
+alembic|
+docker|
+.git|
+__pycache__)
+'''
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+start = "start:main"
