@@ -1,0 +1,53 @@
+services:
+  # 1. Слой хранения данных (Database)
+  db:
+    image: postgres:16-alpine
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    env_file: .env
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      retries: 5
+
+  # 2. Слой кеширования / Очередей (In-memory DB)
+  cache:
+    image: redis:7-alpine
+    restart: always
+
+  # 3. Слой приложения (Backend API)
+  app:
+    build:
+      context: .
+      dockerfile: src/app/Dockerfile
+    volumes:
+      - .:/app
+    # Пробрасываем порты: [внешний]:[внутренний]
+    ports:
+      - "${APP_PORT:-8000}:${APP_PORT:-8000}"
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_started
+    # Команда может быть переопределена здесь
+    command: ${START_COMMAND}
+
+  # 4. Слой фоновых задач (Worker) — опционально
+  worker:
+    build: .
+    volumes:
+      - .:/app
+    env_file: .env
+    depends_on:
+      - db
+      - cache
+    command: ${WORKER_COMMAND}
+
+volumes:
+  db_data:
